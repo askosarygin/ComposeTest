@@ -1,22 +1,33 @@
 package com.example.composetest
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class AuthorizationScreenViewModel : ViewModel() {
-    var modelFlow by mutableStateOf(AuthorizationScreenModel())
+    val modelFlow = MutableStateFlow(AuthorizationScreenModel())
 
-    /*Надо спросить почему именно через copy, почему нельзя просто
-            modelFlow.value.loginField = newLoginFieldText*/
-
-    fun onLoginFieldChanged(newLoginFieldText: String) {
-        modelFlow = modelFlow.copy(loginField = newLoginFieldText)
+    fun onIntent(intent: Intent) {
+        when(intent) {
+            is Intent.LoginFieldChanged -> loginFieldChanged(intent.loginField)
+            is Intent.PasswordFieldChanged -> passwordFieldChanged(intent.passwordField)
+        }
     }
 
-    fun onPasswordFieldChanged(newPasswordFieldText: String) {
-        modelFlow = modelFlow.copy(passwordField = newPasswordFieldText)
+    private fun loginFieldChanged(newLoginFieldText: String) {
+        modelFlow.value = modelFlow.value.copy(loginField = newLoginFieldText)
+    }
+
+    private fun passwordFieldChanged(newPasswordFieldText: String) {
+        modelFlow.value = modelFlow.value.copy(passwordField = newPasswordFieldText)
     }
 }
+
+sealed interface Intent {
+    class LoginFieldChanged(val loginField: String) : Intent
+    class PasswordFieldChanged(val passwordField: String) : Intent
+}
+
+data class AuthorizationScreenModel(
+    val loginField: String = "",
+    val passwordField: String = ""
+)
