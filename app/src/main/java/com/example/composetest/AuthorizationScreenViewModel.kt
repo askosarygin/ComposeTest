@@ -33,9 +33,11 @@ class AuthorizationScreenViewModel : ViewModel() {
 sealed interface Intent {
     class LoginFieldChanged(val loginField: String) : Intent
     class PasswordFieldChanged(val passwordField: String) : Intent
+    class SavedSymbolsChanged(val savedSymbol: String) : Intent
 }
 
 data class AuthorizationScreenModel(
     val loginField: String = "",
-    val passwordField: String = ""
+    val passwordField: String = "",
+    val savedSymbols: MutableList<String> = mutableListOf()
 )
