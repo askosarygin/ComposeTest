@@ -7,4 +7,19 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+<!--    ресурсы из юздеска -->
+    <color name="white_0">#FFFFFF</color>
+    <color name="white_1">#FAFBFC</color>
+    <color name="white_2">#F0F0F0</color>
+
+    <color name="grey_1">#D3D6E3</color>
+    <color name="grey_2">#989FB3</color>
+    <color name="grey_3">#8A9499</color>
+
+    <color name="blue_1">#2F80ED</color>
+
+    <color name="black_1">#333333</color>
+
+    <color name="red_1">#EB5757</color>
 </resources>
