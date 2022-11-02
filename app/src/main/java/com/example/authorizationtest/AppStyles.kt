@@ -20,4 +20,5 @@ object AppStyles {
         //steel-black rgba(51, 51, 51, 1)
         color = Color(51, 51, 51)
     )
+    val white_1 = Color(250, 251, 252)
 }

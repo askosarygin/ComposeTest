@@ -1,38 +1,44 @@
 package com.example.authorizationtest
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.*
 import com.example.composetest.R
+import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,8 +52,8 @@ fun AppCompose.AuthorizationScreen(
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
-            .fillMaxWidth()
             .fillMaxSize()
+            .background(color = colorResource(id = R.color.grey_3))
     ) {
         Column(
             modifier = Modifier
@@ -113,7 +119,6 @@ fun AppCompose.AuthorizationScreen(
                 keyboardActions = KeyboardActions(
                     onDone = {
                         focusManager.clearFocus()
-
                     }
                 )
             )
@@ -133,7 +138,6 @@ fun AppCompose.AuthorizationScreen(
                 text = "Подписаться на спам-рассылку в которой ничего полезного для Вас",
                 fontSize = 17.sp
             )
-
             ButtonSend(
                 onClick = {
                     onCLickAddButton()
@@ -142,6 +146,7 @@ fun AppCompose.AuthorizationScreen(
                             if (model.authorizedUsersList.isEmpty()) 0 else model.authorizedUsersList.lastIndex
                         )
                     }
+                    focusManager.clearFocus()
                 },
                 enabled = model.surNameField.isNotBlank()
                         && model.nameField.isNotBlank() &&
@@ -155,6 +160,20 @@ fun AppCompose.AuthorizationScreen(
         )
 
     }
+}
+
+@Composable
+private fun AvatarImage(
+    size: Dp = 64.dp,
+    id: Long
+) {
+    val numberOfCat = 250L + id
+    GlideImage(
+        imageModel = "https://placekitten.com/g/${numberOfCat}/300",
+        modifier = Modifier
+            .size(size = size)
+            .clip(shape = CircleShape)
+    )
 }
 
 @Composable
@@ -188,63 +207,161 @@ private fun TextListFieldItem(
 
 }
 
+@SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
 private fun ListFieldItem(
+    id: Long = 0L,
     surname: String,
     name: String,
     patronymic: String,
     sex: String,
-    subscribedCheckbox: String
+    subscribedCheckbox: String,
+    timeOfRegistration: String = ""
 ) {
-    Column(
-        modifier = Modifier
-            .background(
-                color = colorResource(id = R.color.white_2),
-                shape = RoundedCornerShape(size = 8.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = colorResource(id = R.color.grey_1),
-                shape = RoundedCornerShape(size = 8.dp)
-            )
-            .padding(
-                start = 12.dp,
-                top = 8.dp,
-                end = 12.dp,
-                bottom = 8.dp
-            )
+    var animated by rememberSaveable() {
+        mutableStateOf(false)
+    }
 
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+    Box(
+        modifier = Modifier
+            .clip(shape = RectangleShape),
+        contentAlignment = Alignment.Center
     ) {
-        TextListFieldItem(hint = "Фамилия:", text = surname)
-        TextListFieldItem(hint = "Имя:", text = name)
-        TextListFieldItem(hint = "Отчество:", text = patronymic)
-        TextListFieldItem(hint = "Пол:", text = sex)
-        TextListFieldItem(hint = "Подписка на спам:", text = subscribedCheckbox)
+        val alphaItem = remember {
+            mutableStateOf(if (animated) 1f else 0f)
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = AppStyles.white_1.copy(alpha = alphaItem.value))
+                .padding(
+                    start = 12.dp,
+                    top = 8.dp,
+                    bottom = 8.dp,
+                    end = 12.dp
+                )
+                .alpha(alphaItem.value),
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            AvatarImage(
+                id = id,
+                size = 48.dp
+            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "$surname $name $patronymic",
+                    style = AppStyles.textStyle.copy(fontSize = 18.sp),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+                Text(
+                    text = "Пол $sex, подписка $subscribedCheckbox",
+                    style = AppStyles.textStyle,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+            }
+            Text(
+                text = timeOfRegistration,
+                style = AppStyles.textStyle.copy(
+                    fontSize = 10.sp,
+                    color = colorResource(id = R.color.grey_2)
+                )
+            )
+        }
+
+        if (!animated) {
+            val itemHeightDp = 64.dp
+            val itemHeight = with(LocalDensity.current) {
+                itemHeightDp.toPx()
+            }
+            val radiusCircle = remember {
+                Animatable(initialValue = itemHeight / 8)
+            }
+
+            val radiusCircleMax = itemHeight / 8 * 27
+            val itemCenter = itemHeight / 2
+
+            val circlePositionY = remember {
+                Animatable(initialValue = 0f - radiusCircle.value)
+            }
+
+            val alphaCircle = remember {
+                Animatable(initialValue = 1f)
+            }
+
+            LaunchedEffect(
+                key1 = Unit,
+                block = {
+                    circlePositionY.animateTo(
+                        targetValue = itemCenter,
+                        animationSpec = tween(100)
+                    )
+                    if (circlePositionY.value == itemCenter) {
+                        radiusCircle.animateTo(
+                            targetValue = radiusCircleMax,
+                            animationSpec = tween(300)
+                        )
+                    }
+                    if (radiusCircle.value == radiusCircleMax) {
+                        alphaItem.value = 1f
+                        alphaCircle.animateTo(
+                            targetValue = 0.0f,
+                            animationSpec = tween(300)
+                        )
+                    }
+
+                })
+
+            if (radiusCircle.value < radiusCircleMax || alphaCircle.value > 0.0f) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp),
+                    onDraw = {
+                        drawCircle(
+                            color = AppStyles.white_1,
+                            radius = radiusCircle.value,
+                            center = Offset(
+                                x = size.width / 2,
+                                y = circlePositionY.value
+                            ),
+                            alpha = alphaCircle.value
+                        )
+                    })
+            } else {
+                animated = true
+            }
+        }
     }
 }
 
+@SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
 private fun ListField(
     authorizedUsers: List<Repository.AuthorizedUser>,
     state: LazyListState = rememberLazyListState()
 ) {
     LazyColumn(
-        modifier = Modifier
-            .padding(all = 10.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
         reverseLayout = true,
         state = state
     ) {
-        items(items = authorizedUsers) { authorizedUser ->
+        itemsIndexed(items = authorizedUsers) { index, authorizedUser ->
+            if (index != 0) {
+                Divider(color = colorResource(id = R.color.grey_1))
+            }
             ListFieldItem(
+                id = authorizedUser.id,
                 surname = authorizedUser.surname,
                 name = authorizedUser.name,
                 patronymic = authorizedUser.patronymic,
                 sex = authorizedUser.sex,
-                subscribedCheckbox = authorizedUser.subscribedCheckbox
+                subscribedCheckbox = authorizedUser.subscribedCheckbox,
+                timeOfRegistration = authorizedUser.timeOfRegistration
             )
         }
     }
@@ -253,22 +370,27 @@ private fun ListField(
 @Composable
 private fun ButtonSend(
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean = true
 ) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = colorResource(id = R.color.black_1)
-        ),
-        shape = RoundedCornerShape(size = 8.dp),
-        elevation = null,
-        enabled = enabled
+    Crossfade(
+        targetState = enabled,
+        animationSpec = tween(durationMillis = 500)
     ) {
-        Text(
-            text = "Добавить",
-            style = AppStyles.textStyle.copy(color = colorResource(id = R.color.white_0))
-        )
+        Button(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = colorResource(id = R.color.black_1)
+            ),
+            shape = RoundedCornerShape(size = 8.dp),
+            elevation = null,
+            enabled = it
+        ) {
+            Text(
+                text = "Добавить",
+                style = AppStyles.textStyle.copy(color = colorResource(id = R.color.white_0))
+            )
+        }
     }
 }
 
@@ -326,35 +448,40 @@ private fun CustomCheckbox(
     shape: Shape = RectangleShape,
     checkboxSize: Dp = 18.dp
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(checkboxSize)
+    Crossfade(
+        targetState = checked,
+        animationSpec = tween(400)
     ) {
-        Button(
-            onClick = {
-                onCheckedChange(!checked)
-            },
-            shape = shape,
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = uncheckedColor
-            ),
-            elevation = null
-        ) {}
-        if (checked) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = checkedColor,
-                        shape = shape
-                    )
-                    .fillMaxSize()
-            )
-            Icon(
-                painter = painterResource(id = R.drawable.checkmarkusedesk),
-                contentDescription = null,
-                tint = checkmarkColor
-            )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(checkboxSize)
+        ) {
+            Button(
+                onClick = {
+                    onCheckedChange(!it)
+                },
+                shape = shape,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = uncheckedColor
+                ),
+                elevation = null
+            ) {}
+            if (it) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = checkedColor,
+                            shape = shape
+                        )
+                        .fillMaxSize()
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.checkmarkusedesk),
+                    contentDescription = null,
+                    tint = checkmarkColor
+                )
+            }
         }
     }
 }
@@ -391,7 +518,25 @@ private fun EntryField(
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         decorationBox = { innerTextField ->
-            if (value.isEmpty()) {
+            AnimatedVisibility(
+                visible = value.isEmpty(),
+                enter = slideInHorizontally(
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessHigh,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    ),
+                    initialOffsetX = { it / 10 }
+                ),
+                exit = slideOutHorizontally(
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessHigh,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    ),
+                    targetOffsetX = { it / 10 }
+                ) + fadeOut(
+                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                )
+            ) {
                 Text(
                     text = hint,
                     style = AppStyles.textStyle.copy(color = colorResource(id = R.color.grey_2))
@@ -430,28 +575,29 @@ private fun DropDownField(
                 start = 10.dp,
                 top = 9.dp,
                 bottom = 9.dp,
-                end = 28.dp
+                end = 13.dp
             )
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (value.isEmpty()) {
+                Crossfade(
+                    targetState = value.ifEmpty { hint },
+                    animationSpec = tween(400)
+                ) {
                     Text(
-                        text = hint,
-                        style = AppStyles.textStyle.copy(color = colorResource(id = R.color.grey_2))
-                    )
-                } else {
-                    Text(
-                        text = value,
+                        text = it,
                         style = AppStyles.textStyle.copy(color = colorResource(id = R.color.grey_2))
                     )
                 }
+
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
+                    painter = painterResource(id = R.drawable.arrowdropdownusedesk),
                     contentDescription = null,
-                    tint = colorResource(id = R.color.grey_2)
+                    tint = colorResource(id = R.color.grey_2),
+                    modifier = Modifier.size(width = 8.dp, height = 5.dp)
                 )
             }
         }
