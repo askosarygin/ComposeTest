@@ -13,7 +13,8 @@ class AuthorizationScreenViewModel : ViewModel() {
     val modelFlow = MutableStateFlow(AuthorizationScreenModel())
 
     fun onIntent(intent: Intent) {
-        runBlocking {//я все равно не понимаю почему надо это делать блокируя основной поток
+        runBlocking {//блокируем поток который вызвал onIntent и заходим в код ниже по ключу
+            // чтобы не было двух записей в model одновременно
             mutex.withLock {
                 val oldModel = modelFlow.value
                 val newModel = reducer.reduceAuthorizationScreenModel(oldModel, intent)

@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,12 +45,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppCompose.AuthorizationScreen(
     model: AuthorizationScreenModel,
+    users: SnapshotStateList<Repository.AuthorizedUser>,
     onIntent: (Intent) -> Unit,
     onCLickAddButton: () -> Unit
 ) {
     val listItems = listOf("мужской", "женский")
     val listFieldState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val listUsers = remember {
+        users
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -141,6 +146,8 @@ fun AppCompose.AuthorizationScreen(
             ButtonSend(
                 onClick = {
                     onCLickAddButton()
+                    listUsers.clear()
+                    listUsers.addAll(model.authorizedUsersList)
                     coroutineScope.launch {
                         listFieldState.animateScrollToItem(
                             if (model.authorizedUsersList.isEmpty()) 0 else model.authorizedUsersList.lastIndex
@@ -155,7 +162,7 @@ fun AppCompose.AuthorizationScreen(
             )
         }
         ListField(
-            authorizedUsers = model.authorizedUsersList,
+            list = listUsers,
             state = listFieldState
         )
 
@@ -176,37 +183,6 @@ private fun AvatarImage(
     )
 }
 
-@Composable
-private fun TextListFieldItem(
-    hint: String,
-    text: String
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(3.dp)
-    ) {
-        Text(
-            text = hint,
-            style = AppStyles.textStyle.copy(color = colorResource(id = R.color.grey_3))
-        )
-        Text(
-            text = text,
-            style = AppStyles.textStyle,
-            modifier = Modifier
-                .background(
-                    color = colorResource(id = R.color.white_1),
-                    shape = RoundedCornerShape(size = 8.dp)
-                )
-                .padding(
-                    start = 10.dp,
-                    top = 2.dp,
-                    bottom = 2.dp,
-                    end = 28.dp
-                )
-        )
-    }
-
-}
-
 @SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
 private fun ListFieldItem(
@@ -218,7 +194,7 @@ private fun ListFieldItem(
     subscribedCheckbox: String,
     timeOfRegistration: String = ""
 ) {
-    var animated by rememberSaveable() {
+    var animated by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -341,7 +317,7 @@ private fun ListFieldItem(
 @SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
 private fun ListField(
-    authorizedUsers: List<Repository.AuthorizedUser>,
+    list: SnapshotStateList<Repository.AuthorizedUser>,
     state: LazyListState = rememberLazyListState()
 ) {
     LazyColumn(
@@ -350,7 +326,7 @@ private fun ListField(
         reverseLayout = true,
         state = state
     ) {
-        itemsIndexed(items = authorizedUsers) { index, authorizedUser ->
+        itemsIndexed(items = list) { index, authorizedUser ->
             if (index != 0) {
                 Divider(color = colorResource(id = R.color.grey_1))
             }
