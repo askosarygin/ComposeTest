@@ -45,16 +45,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppCompose.AuthorizationScreen(
     model: AuthorizationScreenModel,
-    users: SnapshotStateList<Repository.AuthorizedUser>,
     onIntent: (Intent) -> Unit,
     onCLickAddButton: () -> Unit
 ) {
     val listItems = listOf("мужской", "женский")
     val listFieldState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val listUsers = remember {
-        users
-    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -146,8 +143,6 @@ fun AppCompose.AuthorizationScreen(
             ButtonSend(
                 onClick = {
                     onCLickAddButton()
-                    listUsers.clear()
-                    listUsers.addAll(model.authorizedUsersList)
                     coroutineScope.launch {
                         listFieldState.animateScrollToItem(
                             if (model.authorizedUsersList.isEmpty()) 0 else model.authorizedUsersList.lastIndex
@@ -162,7 +157,7 @@ fun AppCompose.AuthorizationScreen(
             )
         }
         ListField(
-            list = listUsers,
+            list = model.authorizedUsersList,
             state = listFieldState
         )
 
@@ -317,7 +312,7 @@ private fun ListFieldItem(
 @SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
 private fun ListField(
-    list: SnapshotStateList<Repository.AuthorizedUser>,
+    list: SnapshotStateList<AuthorizedUser>,
     state: LazyListState = rememberLazyListState()
 ) {
     LazyColumn(
@@ -336,7 +331,7 @@ private fun ListField(
                 name = authorizedUser.name,
                 patronymic = authorizedUser.patronymic,
                 sex = authorizedUser.sex,
-                subscribedCheckbox = authorizedUser.subscribedCheckbox,
+                subscribedCheckbox = if(authorizedUser.subscribedCheckbox) "подписан" else "не подписан",
                 timeOfRegistration = authorizedUser.timeOfRegistration
             )
         }

@@ -1,7 +1,12 @@
 package com.example.authorizationtest
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -9,12 +14,33 @@ import kotlinx.coroutines.sync.withLock
 class AuthorizationScreenViewModel : ViewModel() {
     private val reducer = AuthorizationScreenReducer()
     private val mutex = Mutex()
+    private val interactor = ServiceLocator.interactor
+    private val ioScope = CoroutineScope(Dispatchers.IO)
 
     val modelFlow = MutableStateFlow(AuthorizationScreenModel())
 
+    init {
+        ioScope.launch {
+            interactor.modelFlow.collect { interactorModel ->
+                onIntent(Intent.AuthorizedUsersListChanged(
+                    interactorModel.authorizedUsersList
+                ))
+            }
+        }
+    }
+
+    fun addNewAuthorizedUser(
+        surname: String,
+        name: String,
+        patronymic: String,
+        sex: String,
+        subscribedCheckbox: Boolean
+    ) {
+        interactor.addNewAuthorizedUser(surname, name, patronymic, sex, subscribedCheckbox)
+    }
+
     fun onIntent(intent: Intent) {
-        runBlocking {//блокируем поток который вызвал onIntent и заходим в код ниже по ключу
-            // чтобы не было двух записей в model одновременно
+        runBlocking {
             mutex.withLock {
                 val oldModel = modelFlow.value
                 val newModel = reducer.reduceAuthorizationScreenModel(oldModel, intent)
@@ -40,8 +66,9 @@ sealed interface Intent {
     class PatronymicFieldChanged(val newPatronymic: String) : Intent
     class SexFieldChanged(val newSex: String) : Intent
     class SubscribedCheckboxChanged(val newCheckboxSelection: Boolean) : Intent
-    class AuthorizedUsersListChanged(val newAuthorizedUsersList: List<Repository.AuthorizedUser>) :
-        Intent
+    class AuthorizedUsersListChanged(
+        val newAuthorizedUsersList: SnapshotStateList<AuthorizedUser>
+    ) : Intent
 }
 
 data class AuthorizationScreenModel(
@@ -50,5 +77,5 @@ data class AuthorizationScreenModel(
     val patronymicField: String = "",
     val sexField: String = "",
     val subscribedCheckbox: Boolean = false,
-    val authorizedUsersList: List<Repository.AuthorizedUser> = listOf()
+    val authorizedUsersList: SnapshotStateList<AuthorizedUser> = mutableStateListOf()
 )
