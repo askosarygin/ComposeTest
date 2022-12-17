@@ -1,21 +1,14 @@
 package com.example.authorizationtest
 
-class Repository {
-    private val authorizedUsersDB = mutableListOf<AuthorizedUser>()
+import com.example.authorizationtest.db.AuthorizedUser
+import com.example.authorizationtest.db.AuthorizedUserDAO
 
-    suspend fun downloadAuthorizedUsersDB() = authorizedUsersDB
+class Repository(authorizedUsersDB: AuthorizedUserDAO) {
+    private val authorizedUsersDB = authorizedUsersDB
+
+    suspend fun downloadAuthorizedUsersDB() = authorizedUsersDB.getAll()
 
     suspend fun addAuthorizedUserToDB(authorizedUser: AuthorizedUser) {
         authorizedUsersDB.add(authorizedUser)
     }
 }
-
-data class AuthorizedUser(
-    val id: Long,
-    val timeOfRegistration: String,
-    val surname: String,
-    val name: String,
-    val patronymic: String,
-    val sex: String,
-    val subscribedCheckbox: Boolean
-)

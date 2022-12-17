@@ -3,6 +3,7 @@ package com.example.authorizationtest
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import com.example.authorizationtest.db.AuthorizedUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.sync.withLock
 class AuthorizationScreenViewModel : ViewModel() {
     private val reducer = AuthorizationScreenReducer()
     private val mutex = Mutex()
-    private val interactor = ServiceLocator.interactor
+    private val interactor = ServiceLocator.instance.interactor
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
     val modelFlow = MutableStateFlow(AuthorizationScreenModel())

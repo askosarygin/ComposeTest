@@ -38,6 +38,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import com.example.authorizationtest.db.AuthorizedUser
 import com.example.composetest.R
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch

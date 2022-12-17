@@ -9,6 +9,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        ServiceLocator.instance = ServiceLocator(this)
+
         supportFragmentManager
             .beginTransaction()
             .add(R.id.fragment_container, AuthorizationScreenFragment::class.java, null)

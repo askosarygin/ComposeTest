@@ -3,6 +3,8 @@ package com.example.authorizationtest
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.example.authorizationtest.db.AuthorizedUser
+import com.example.authorizationtest.db.AuthorizedUserDAO
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,8 +15,8 @@ import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Interactor {
-    private val repository = Repository()
+class Interactor(authorizedUsersDB: AuthorizedUserDAO) {
+    private val repository = Repository(authorizedUsersDB)
     private val mutex = Mutex()
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
